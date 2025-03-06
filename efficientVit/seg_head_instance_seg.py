@@ -61,6 +61,7 @@ class InstanceSegHead(torch.nn.Module):
         dropout=0,
         norm="bn2d",
         act_func="hswish",
+        output_size: tuple = (80, 80),  # Add configurable output size
     ):
         super().__init__()
         # Process multi-scale features without upsampling here
@@ -90,6 +91,7 @@ class InstanceSegHead(torch.nn.Module):
         final_layers_emb = []
         if final_expand is not None:
             final_layers_emb.append(ConvLayer(head_width, int(head_width * final_expand), kernel_size=1, norm=norm, act_func=act_func))
+            final_layers_emb.append(nn.Dropout2d(dropout))  # Add dropout
         final_layers_emb.append(
             ConvLayer(
                 head_width if final_expand is None else int(head_width * final_expand),
@@ -100,13 +102,14 @@ class InstanceSegHead(torch.nn.Module):
             )
         )
         self.final_emb = OpSequential(*final_layers_emb)
+        self.output_size = output_size
     
     def forward(self, x: dict) -> dict:
-        target_size = (80, 80)  # Hardcoded for img_size=640 and head_stride=8
+        # Use configurable output size instead of hardcoded value
         features = []
         for fid, layer in self.inputs.items():
             feat = layer(x[fid])  # Apply ConvLayer only
-            feat = F.interpolate(feat, size=target_size, mode='bilinear', align_corners=False)
+            feat = F.interpolate(feat, size=self.output_size, mode='bilinear', align_corners=False)
             features.append(feat)
         fused = torch.stack(features, dim=0).sum(dim=0)  # [B, head_width, 80, 80]
         fused = self.middle(fused)
@@ -134,6 +137,7 @@ def efficientvit_instance_seg_custom(emb_dim: int = 16, n_classes: int = 2, **kw
         dropout=kwargs.get("dropout", 0),
         norm=kwargs.get("norm", "bn2d"),
         act_func=kwargs.get("act_func", "hswish"),
+        output_size=kwargs.get("output_size", (80, 80)),  # Add configurable output size
     )
     model = EfficientViTSeg(backbone, head)
     return model

@@ -7,6 +7,7 @@ import torchvision.transforms as T
 from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class CocoSegDataset(Dataset):
     def __init__(self, root, ann_file, transform=None):
@@ -111,10 +112,19 @@ def instance_loss_fn(embeddings, gt_masks, batch_size):
                 instance_emb.append(torch.zeros(emb_flat.size(-1), device=device))
         if len(instance_emb) <= 1: continue
         instance_emb = torch.stack(instance_emb)
-        for i in range(len(instance_emb)):
-            for j in range(i + 1, len(instance_emb)):
-                diff = instance_emb[i] - instance_emb[j]
-                loss += torch.relu(1.0 - diff.norm()).pow(2)
+        distances = torch.cdist(instance_emb, instance_emb, p=2)
+        
+        # Enhanced margin-based loss
+        pos_margin = 0.1  # Maximum intra-instance distance
+        neg_margin = 1.0  # Minimum inter-instance distance
+        
+        pos_loss = torch.relu(torch.diag(distances) - pos_margin).mean()
+        neg_mask = torch.ones_like(distances) - torch.eye(distances.size(0), device=device)
+        neg_loss = torch.relu(neg_margin - distances) * neg_mask
+        neg_loss = neg_loss.sum() / (neg_mask.sum() + 1e-6)
+        
+        # Balanced loss weighting
+        loss += pos_loss + 2.0 * neg_loss  # Give more weight to instance separation
     return loss / batch_size if loss > 0 else loss
 
 def save_and_plot_metrics(epoch, avg_loss, mAP, metrics_file="checkpoints/training_metrics.json", save_dir="checkpoints"):
