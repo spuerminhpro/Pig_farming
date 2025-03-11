@@ -52,6 +52,7 @@ python test.py -dp /PATH/TO/YOUR/DATASET/ -m result/FamNet.pth
 
 
 ## Training 
+Thay đổi model path trong train.py để finetune model từ paper
 ``` bash
 python train.py -dp /path/to/dataset -o /path/to/output -ep 100     --gpu 0
 ```
