@@ -56,7 +56,7 @@ Thay đổi model path trong train.py để finetune model từ paper
 ``` bash
 python train.py -dp /path/to/dataset -o /path/to/output -ep 100     --gpu 0
 ```
-
+![image](train_result.png)
 ## Citation
 
 If you find the code useful, please cite:
