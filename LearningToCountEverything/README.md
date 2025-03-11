@@ -1,4 +1,4 @@
-# Learning To Count Everything
+# Learning To Count Everything mượn xài
 ![image](learn2countEverything.png)
 
 This is the official implementation of the following CVPR 2021 paper:
@@ -36,32 +36,24 @@ conda install pytorch==1.4.0 torchvision==0.5.0 cudatoolkit=10.0 -c pytorch
 Provide the input image and also provide the bounding boxes of exemplar objects using a text file:
 
 ``` bash
-python demo.py --input-image orange.jpg --bbox-file orange_box_ex.txt 
+python demo.py --input-image 198.jpg --bbox-file 198.txt -m result/FamNet.pth
 ```
-
-Use our provided interface to specify the bounding boxes for exemplar objects
-
-
-``` bash
-python demo.py --input-image orange.jpg
-```
-
 
 ## Evaluation
 We are providing our pretrained FamNet model, and the evaluation code can be used without the training.
 ### Testing on validation split without adaptation
 ```bash 
-python test.py --data_path /PATH/TO/YOUR/FSC147/DATASET/ --test_split val
+python test.py --data_path /PATH/TO/YOUR/FSC147/DATASET/ -m result/FamNet.pth
 ```
 ### Testing on val split with adaptation
 ```bash 
-python test.py --data_path /PATH/TO/YOUR/FSC147/DATASET/ --test_split val --adapt
+python test.py -dp /PATH/TO/YOUR/DATASET/ -m result/FamNet.pth
 ```
 
 
 ## Training 
 ``` bash
-python train.py --gpu 0
+python train.py -dp /path/to/dataset -o /path/to/output -ep 100     --gpu 0
 ```
 
 ## Citation
