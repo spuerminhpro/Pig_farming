@@ -36,18 +36,18 @@ conda install pytorch==1.4.0 torchvision==0.5.0 cudatoolkit=10.0 -c pytorch
 Provide the input image and also provide the bounding boxes of exemplar objects using a text file:
 
 ``` bash
-python demo.py --input-image 198.jpg --bbox-file 198.txt -m result/FamNet.pth
+python demo.py --input-image 198.jpg --bbox-file 198.txt -m result/FamNet_45_100epo_200img.pth
 ```
 
 ## Evaluation
 We are providing our pretrained FamNet model, and the evaluation code can be used without the training.
 ### Testing on validation split without adaptation
 ```bash 
-python test.py --data_path /PATH/TO/YOUR/FSC147/DATASET/ -m result/FamNet.pth
+python test.py --data_path /PATH/TO/YOUR/FSC147/DATASET/ -m result/FamNet_45_100epo_200img.pth
 ```
 ### Testing on val split with adaptation
 ```bash 
-python test.py -dp /PATH/TO/YOUR/DATASET/ -m result/FamNet.pth
+python test.py -dp /PATH/TO/YOUR/DATASET/ -m result/FamNet_45_100epo_200img.pth
 ```
 
 
@@ -56,7 +56,7 @@ Thay đổi model path trong train.py để finetune model từ paper
 ``` bash
 python train.py -dp /path/to/dataset -o /path/to/output -ep 100     --gpu 0
 ```
-
+![image](train_result.png)
 ## Citation
 
 If you find the code useful, please cite:
