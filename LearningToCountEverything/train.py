@@ -22,8 +22,8 @@ import torch.nn.functional as F
 
 
 parser = argparse.ArgumentParser(description="Few Shot Counting Evaluation code")
-parser.add_argument("-dp", "--data_path", type=str, default='/home/hoai/DataSets/AgnosticCounting/FSC147_384_V2/', help="Path to the FSC147 dataset")
-parser.add_argument("-o", "--output_dir", type=str,default="./logsSave", help="/Path/to/output/logs/")
+parser.add_argument("-dp", "--data_path", type=str, default=r'C:\Users\phann\Documents\Pig_farming\LearningToCountEverything\scale_count/')
+parser.add_argument("-o", "--output_dir", type=str,default="./logsSave")
 parser.add_argument("-ts", "--test-split", type=str, default='val', choices=["train", "test", "val"], help="what data split to evaluate on on")
 parser.add_argument("-ep", "--epochs", type=int,default=100, help="number of training epochs")
 parser.add_argument("-g", "--gpu", type=int,default=0, help="GPU id")
@@ -50,7 +50,6 @@ resnet50_conv.cuda()
 resnet50_conv.eval()
 
 regressor = CountRegressor(6, pool='mean')
-regressor
 
 weights_normal_init(regressor, dev=0.001)
 regressor.train().load_state_dict(torch.load(model_path))

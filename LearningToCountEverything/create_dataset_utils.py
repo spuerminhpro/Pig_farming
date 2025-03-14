@@ -100,82 +100,148 @@ def adjust_boxes_and_points(boxes, points, pad_left, pad_top, scale_factor):
     
     return adjusted_boxes, adjusted_points
 
+# Utility functions (assumed available)
+from create_dataset_utils import (
+    generate_density_map,
+    select_exemplars,
+    extract_boxes_from_track,
+    boxes_to_centers,
+    add_random_padding_to_frame,
+    adjust_boxes_and_points
+)
 
+def create_dataset_for_video(video_file, track_file, images_output_dir, density_maps_output_dir, annotations, video_id, global_frame_counter,scales=[None, 0.45, 0.55]):
+    """
+    Creates a dataset from a video, generating three versions per frame: original, scale 0.45, and scale 0.55.
 
-def create_dataset(video_file, track_file, images_output_dir, density_maps_output_dir, annotations, video_id, global_frame_counter, scale_factor=None):    
+    Args:
+        video_file (str): Path to the video file.
+        track_file (str): Path to the track file with annotations.
+        images_output_dir (str): Directory to save images.
+        density_maps_output_dir (str): Directory to save density maps.
+        annotations (dict): Dictionary to store annotations.
+        video_id (str): Identifier for the video.
+        global_frame_counter (int): Counter for unique frame numbering.
+
+    Returns:
+        tuple: Updated global_frame_counter and annotations dictionary.
+    """
     track_data = np.load(track_file, allow_pickle=True)
     cap = cv2.VideoCapture(video_file)
     if not cap.isOpened():
         print(f"Cannot open video file {video_file}")
+        return global_frame_counter, annotations
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     if total_frames <= 0:
         print(f"No frames found in video file {video_file}")
         cap.release()
-    else:
-        # chia 10 frame từ video
-        frame_indices = np.linspace(0, total_frames - 1, 10, dtype=int) # chia thành 10 giá trị có khoảng cách bằng nhau
-        for frame_id in frame_indices:
-            cap.set(cv2.CAP_PROP_POS_FRAMES, frame_id)
-            ret, frame = cap.read()
-            if not ret:
-                print(f"Failed to read frame {frame_id} from video {video_file}")
-                continue
-            image_filename = f"{global_frame_counter}.jpg"
-            image_path = os.path.join(images_output_dir, image_filename)
-                        
-            boxes = extract_boxes_from_track(track_data, frame_id)
-            dot_annotations = boxes_to_centers(boxes)
+        return global_frame_counter, annotations
 
-            if scale_factor is not None: # scale size ảnh
-                padded_frame, pad_left, pad_top, scale = add_random_padding_to_frame(frame, scale_factor)
-                adjusted_boxes, adjusted_points = adjust_boxes_and_points(boxes, dot_annotations, pad_left, pad_top, scale)
-                cv2.imwrite(image_path, padded_frame)
-            else:                        # giữ nguyên size ảnh
+    # Extract 10 evenly spaced frames
+    frame_indices = np.linspace(0, total_frames - 1, 10, dtype=int)
+
+    for frame_id in frame_indices:
+        cap.set(cv2.CAP_PROP_POS_FRAMES, frame_id)
+        ret, frame = cap.read()
+        if not ret:
+            print(f"Failed to read frame {frame_id} from video {video_file}")
+            continue
+
+        boxes = extract_boxes_from_track(track_data, frame_id)
+        dot_annotations = boxes_to_centers(boxes)
+        frame_number = global_frame_counter  #
+
+        # Process scale
+        for scale in scales:
+            if scale is None:
+                scale_str = "original"
+                padded_frame = frame
                 adjusted_boxes = boxes
                 adjusted_points = dot_annotations
-                cv2.imwrite(image_path, frame)
-                
-        
-            # Tạo density map
-            image_shape = (padded_frame.shape[0], padded_frame.shape[1])
+            else:
+                scale_str = f"scale{int(scale * 100):03d}" 
+                padded_frame, pad_left, pad_top, scale_factor = add_random_padding_to_frame(frame, scale)
+                adjusted_boxes, adjusted_points = adjust_boxes_and_points(boxes, dot_annotations, pad_left, pad_top, scale_factor)
+
+            # filenames
+            image_filename = f"{frame_number:06d}_{scale_str}.jpg"
+            image_path = os.path.join(images_output_dir, image_filename)
+            cv2.imwrite(image_path, padded_frame)
+
+            # Tạo density map và lưu
+            image_shape = padded_frame.shape[:2]
             density_map = generate_density_map(image_shape, adjusted_points)
-            density_filename = f"{global_frame_counter}.npy"
+            density_filename = f"{frame_number:06d}_{scale_str}.npy"
             density_path = os.path.join(density_maps_output_dir, density_filename)
             np.save(density_path, density_map)
-            
-            # Lấy 3 bounding box để làm exemplar
+
+            # Update annotations
             exemplar_boxes = select_exemplars(adjusted_boxes, num_exemplars=3)
-            
-            # Lưu các điểm của bounding box
-            exemplar_coords = []
-            for box in exemplar_boxes:
-                x1, y1, x2, y2 = box
-                # Model format input: [x1, y1], [x1, y2], [x2, y2], [x2, y1]
-                exemplar_coords.append([[x1, y1], [x1, y2], [x2, y2], [x2, y1]]) 
-            
-            # Lưu annotations
+            exemplar_coords = [[[x1, y1], [x1, y2], [x2, y2], [x2, y1]] for x1, y1, x2, y2 in exemplar_boxes]
             annotations[image_filename] = {
                 "H": image_shape[0],
                 "W": image_shape[1],
                 "box_examples_coordinates": exemplar_coords,
                 "points": adjusted_points
             }
-            
-            print(f"Processed frame {global_frame_counter} from video {video_id} (video frame id: {frame_id})")
-            global_frame_counter += 1
+            print(f"Processed image {image_filename} from video {video_id} (frame {frame_id})")
 
-        cap.release()
+        global_frame_counter += 1
+
+    cap.release()
+    return global_frame_counter, annotations
+
+def create_dataset_for_image(image, boxes, images_output_dir, density_maps_output_dir, annotations, global_frame_counter, scales=[None, 0.45, 0.55]):
+    # Convert boxes to center points using the utility function from create_dataset_utils
+    dot_annotations = boxes_to_centers(boxes)
+    frame_number = global_frame_counter  # Base name for this frame’s outputs
+
+    for scale in scales:
+        if scale is None:
+            scale_str = "original"
+            processed_image = image.copy()
+            adjusted_boxes = boxes
+            adjusted_points = dot_annotations
+        else:
+            scale_str = f"scale{int(scale * 100):03d}"  # e.g., "scale045" for a scale of 0.45
+            processed_image, pad_left, pad_top, applied_scale = add_random_padding_to_frame(image, scale)
+            adjusted_boxes, adjusted_points = adjust_boxes_and_points(boxes, dot_annotations, pad_left, pad_top, applied_scale)
+
+        # Define filenames
+        image_filename = f"{frame_number:06d}_{scale_str}.jpg"
+        image_path = os.path.join(images_output_dir, image_filename)
+        cv2.imwrite(image_path, processed_image)
+
+        # Generate and save the density map using the utility function
+        image_shape = processed_image.shape[:2]
+        density_map = generate_density_map(image_shape, adjusted_points)
+        density_filename = f"{frame_number:06d}_{scale_str}.npy"
+        density_path = os.path.join(density_maps_output_dir, density_filename)
+        np.save(density_path, density_map)
+
+        # Update annotations with exemplar boxes for the current image
+        exemplar_boxes = select_exemplars(adjusted_boxes, num_exemplars=3)
+        exemplar_coords = [[[x1, y1], [x1, y2], [x2, y2], [x2, y1]] for x1, y1, x2, y2 in exemplar_boxes]
+        annotations[image_filename] = {
+            "H": image_shape[0],
+            "W": image_shape[1],
+            "box_examples_coordinates": exemplar_coords,
+            "points": adjusted_points
+        }
+        print(f"Processed image {image_filename}")
+
+    # Increment counter after processing all scales for this image
+    global_frame_counter += 1
 
     return global_frame_counter, annotations
 
-import os
-import json
 
-def create_data_split(image_dir, output_dir, train_ratio=0.7, val_ratio=0.15):
+
+def create_data_split(image_dir, output_dir, train_ratio=0.6, val_ratio=0.2):
     # Lấy tên ảnh từ thư mục
     image_names = sorted(
         [f for f in os.listdir(image_dir) if f.endswith(('.jpg', '.png'))],
-        key=lambda x: int(x.split('.')[0])
+        key=lambda x: x.split('.')[0]
     )
     
     # Tính số lượng ảnh cho train_set, val_set, test_set
