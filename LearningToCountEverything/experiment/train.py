@@ -10,7 +10,7 @@ import json
 from tqdm import tqdm
 import torch.nn.functional as F
 
-data_path = '/content/'
+data_path = r'E:\program\pythonProject\Pig_farming\LearningToCountEverything\scale_count'
 train_dataset = SingleClassDataset(data_path=data_path, split='train', target_class='car', transform=TransformTrain)
 train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True)
 
@@ -38,25 +38,24 @@ def train_epoch(epoch):
         images = batch['image'].cuda()
         gt_density = batch['gt_density'].cuda()
 
+
+
         optimizer.zero_grad()
         pred_density = model(images)
-
         if len(pred_density.shape) != 4:
             pred_density = pred_density.view(1, 1, *pred_density.shape[-2:])
         if len(gt_density.shape) != 4:
             gt_density = gt_density.view(1, 1, *gt_density.shape[-2:])
-
-        # Interpolate to match gt_density's spatial dimensions
-        target_size = (gt_density.shape[2], gt_density.shape[3])
-        pred_density = F.interpolate(pred_density, size=target_size, mode='bilinear', align_corners=False)
+        # Debug shapes
+        print(f"pred_density shape: {pred_density.shape}")
+        print(f"gt_density shape: {gt_density.shape}")
 
         # MSE loss for density map
         mse_loss = criterion(pred_density, gt_density)
-        # Count loss for regularization
         gt_cnt = torch.sum(gt_density)
         pred_cnt = torch.sum(pred_density)
         count_loss = F.mse_loss(pred_cnt, gt_cnt)
-        total_loss = mse_loss + 0.1 * count_loss  # Adjust weight as needed
+        total_loss = mse_loss + 0.1 * count_loss
 
         total_loss.backward()
         optimizer.step()
