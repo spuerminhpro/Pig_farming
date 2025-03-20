@@ -88,15 +88,16 @@ def adjust_boxes_and_points(boxes, points, pad_left, pad_top, scale_factor):
         adjusted_boxes.append([x1_padded, y1_padded, x2_padded, y2_padded])
     
     adjusted_points = []
-    for point in points:
-        px, py = point # center point từ ảnh gốc
-        # Scale coordinates
-        px_scaled = px * scale_factor
-        py_scaled = py * scale_factor
-        # Shift by padding
-        px_padded = px_scaled + pad_left
-        py_padded = py_scaled + pad_top
-        adjusted_points.append([px_padded, py_padded])
+    if points is not None:
+        for point in points:
+            px, py = point # center point từ ảnh gốc
+            # Scale coordinates
+            px_scaled = px * scale_factor
+            py_scaled = py * scale_factor
+            # Shift by padding
+            px_padded = px_scaled + pad_left
+            py_padded = py_scaled + pad_top
+            adjusted_points.append([px_padded, py_padded])
     
     return adjusted_boxes, adjusted_points
 
@@ -110,7 +111,7 @@ from create_dataset_utils import (
     adjust_boxes_and_points
 )
 
-def create_dataset_for_video(video_file, track_file, images_output_dir, density_maps_output_dir, annotations, video_id, global_frame_counter,scales=[None, 0.45, 0.55]):
+def create_dataset_for_video_FSC147(video_file, track_file, images_output_dir, density_maps_output_dir, annotations, video_id, global_frame_counter,scales=[None, 0.45, 0.55]):
     """
     Creates a dataset from a video, generating three versions per frame: original, scale 0.45, and scale 0.55.
 
@@ -191,7 +192,7 @@ def create_dataset_for_video(video_file, track_file, images_output_dir, density_
     cap.release()
     return global_frame_counter, annotations
 
-def create_dataset_for_image(image, boxes, images_output_dir, density_maps_output_dir, annotations, global_frame_counter, scales=[None, 0.45, 0.55]):
+def create_dataset_for_image_FSC147(image, boxes, images_output_dir, density_maps_output_dir, annotations, global_frame_counter, scales=[None, 0.45, 0.55]):
     # Convert boxes to center points using the utility function from create_dataset_utils
     dot_annotations = boxes_to_centers(boxes)
     frame_number = global_frame_counter  # Base name for this frame’s outputs
@@ -235,8 +236,157 @@ def create_dataset_for_image(image, boxes, images_output_dir, density_maps_outpu
 
     return global_frame_counter, annotations
 
+def create_dataset_GroundDino_odvg(image, boxes,categories, output_dir, annotations, global_frame_counter, scales=[None, 0.45, 0.55]):
+    frame_number = global_frame_counter
+
+    for scale in scales:
+        if scale is None:
+            scale_str = "original"
+            processed_image = image.copy()
+            adjusted_boxes = boxes
+        else:
+            scale_str = f"scale{int(scale * 100):03d}"
+            processed_image, pad_left, pad_top, applied_scale = add_random_padding_to_frame(image, scale)
+            adjusted_boxes, _ = adjust_boxes_and_points(boxes, [], pad_left, pad_top, applied_scale)
+
+        image_filename = f"{frame_number:06d}_{scale_str}.jpg"
+        images_output_dir = os.path.join(output_dir, "images")
+        image_path = os.path.join(images_output_dir, image_filename)
+        cv2.imwrite(image_path, processed_image)
+        image_shape = processed_image.shape[:2]
+
+        exemplar_boxes = select_exemplars(adjusted_boxes, num_exemplars=3)
+        #Convert exemplar boxes to the format in the example jsonl
+        exemplar_coords = [[int(x1), int(y1), int(x2), int(y2)] for x1, y1, x2, y2 in exemplar_boxes]
 
 
+        annotations.append({  # Append to a list, not a dictionary
+            "filename": image_filename,
+            "height": image_shape[0],
+            "width": image_shape[1],
+            "detection": {
+                "instances": [
+                    {
+                        "bbox": [(x1), (y1), (x2), (y2)],  
+                        "label": 0,  # id category
+                        "category": categories["categories"][0]['name'] #class
+                    } for x1, y1, x2, y2 in adjusted_boxes
+                ]
+            },
+            "exemplars": exemplar_coords
+        })
+        print(f"Processed image {image_filename}")
+
+    global_frame_counter += 1
+
+    return global_frame_counter, annotations
+
+
+
+def create_dataset_GroundDino_coco(image_paths, boxes_list, output_dir, categories, global_frame_counter, scales=[None, 0.45, 0.55]):
+    """
+    Builds a COCO-formatted dataset using the provided images and bounding boxes, including scaled versions.
+
+    Args:
+        image_paths (list): List of paths to the original images.
+        boxes_list (list): List of lists, where each inner list contains bounding boxes [x1, y1, x2, y2] for the corresponding image.
+        output_dir (str): Base directory to save the processed images.
+        categories (dict): A dictionary with a "categories" key containing a list of category dictionaries.
+        global_frame_counter (int): Starting counter for unique filenames.
+        scales (list): List of scales to apply, where None means original.
+
+    Returns:
+        tuple: A tuple (coco_dataset, new_global_frame_counter) where coco_dataset is a dictionary with 'images', 'annotations',
+               and 'categories' in COCO format and new_global_frame_counter is the updated frame counter.
+    """
+    # Ensure output directory exists
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    
+    # Define final images output directory
+    images_output_dir_final = os.path.join(output_dir, "images")
+    if not os.path.exists(images_output_dir_final):
+        os.makedirs(images_output_dir_final)
+    
+    # Initialize COCO dataset components
+    images_list = []
+    annotation_list = []
+    categories_list = categories  # This remains as the same dictionary format passed in.
+    image_id = 1
+    annotation_id_counter = 1
+    frame_counter = global_frame_counter  # Use global_frame_counter as starting point
+
+    # Process each image and its bounding boxes
+    for image_path, boxes in zip(image_paths, boxes_list):
+        image = cv2.imread(image_path)
+        if image is None:
+            print(f"Failed to load image {image_path}")
+            continue
+
+        # Apply each scale to the current image
+        for scale in scales:
+            if scale is None:
+                scale_str = "original"
+                processed_image = image.copy()
+                adjusted_boxes = boxes
+            else:
+                scale_str = f"scale{int(scale * 100):03d}"
+                processed_image, pad_left, pad_top, applied_scale = add_random_padding_to_frame(image, scale)
+                adjusted_boxes, _ = adjust_boxes_and_points(boxes, None, pad_left, pad_top, applied_scale)
+
+            # Define unique filename using frame_counter
+            image_filename = f"{frame_counter:06d}_{scale_str}.jpg"
+            output_path = os.path.join(images_output_dir_final, image_filename)
+            cv2.imwrite(output_path, processed_image)
+            image_shape = processed_image.shape[:2]  # (height, width)
+
+            # Add image entry to images_list
+            images_list.append({
+                "height": image_shape[0],
+                "width": image_shape[1],
+                "id": image_id,
+                "file_name": image_filename
+            })
+
+            # Add annotations for this image version
+            for box in adjusted_boxes:
+                x_min, y_min, x_max, y_max = box
+                width = x_max - x_min
+                height = y_max - y_min
+                area = width * height
+                annotation_list.append({
+                    "iscrowd": 0,
+                    "image_id": image_id,
+                    "bbox": [float(x_min), float(y_min), int(width), int(height)],
+                    "category_id":  categories["categories"][0]['id'],  # Assuming one category
+                    "id": annotation_id_counter,
+                    "area": float(area)
+                })
+                annotation_id_counter += 1
+
+            print(f"Processed image {image_filename}")
+            image_id += 1
+
+        frame_counter += 1  # Increment for each base image
+
+    # Update the global frame counter (could be returned for subsequent calls)
+    global_frame_counter = frame_counter
+
+    # Assemble the COCO dataset dictionary
+    coco_dataset = {
+        "images": images_list,
+        "annotations": annotation_list,
+        "categories": categories_list
+    }
+
+    return coco_dataset, global_frame_counter
+
+
+
+
+
+    
+        
 def create_data_split(image_dir, output_dir, train_ratio=0.6, val_ratio=0.2):
     # Lấy tên ảnh từ thư mục
     image_names = sorted(
