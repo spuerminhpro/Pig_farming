@@ -238,7 +238,7 @@ def create_dataset_for_image_FSC147(image, boxes, images_output_dir, density_map
 
 def create_dataset_GroundDino_odvg(image, boxes,categories, output_dir, annotations, global_frame_counter, scales=[None, 0.45, 0.55]):
     frame_number = global_frame_counter
-
+    annotations_file= annotations
     for scale in scales:
         if scale is None:
             scale_str = "original"
@@ -260,22 +260,25 @@ def create_dataset_GroundDino_odvg(image, boxes,categories, output_dir, annotati
         exemplar_coords = [[int(x1), int(y1), int(x2), int(y2)] for x1, y1, x2, y2 in exemplar_boxes]
 
 
-        annotations.append({  # Append to a list, not a dictionary
+        annotation = {
             "filename": image_filename,
             "height": image_shape[0],
             "width": image_shape[1],
             "detection": {
                 "instances": [
                     {
-                        "bbox": [(x1), (y1), (x2), (y2)],  
-                        "label": 0,  # id category
-                        "category": categories["categories"][0]['name'] #class
+                        "bbox": [x1, y1, x2, y2],
+                        "label": 0,  # category id
+                        "category": categories["categories"][0]['name']  # category name
                     } for x1, y1, x2, y2 in adjusted_boxes
                 ]
             },
             "exemplars": exemplar_coords
-        })
-        print(f"Processed image {image_filename}")
+        }
+
+        # Write each annotation as a new line in the annotations file
+        with open(annotations_file, "a") as f:
+            f.write(json.dumps(annotation) + "\n")
 
     global_frame_counter += 1
 
@@ -358,7 +361,7 @@ def create_dataset_GroundDino_coco(image_paths, boxes_list, output_dir, categori
                     "iscrowd": 0,
                     "image_id": image_id,
                     "bbox": [float(x_min), float(y_min), int(width), int(height)],
-                    "category_id":  categories["categories"][0]['id'],  # Assuming one category
+                    "category_id":  categories[0]['id'],  # Assuming one category
                     "id": annotation_id_counter,
                     "area": float(area)
                 })
