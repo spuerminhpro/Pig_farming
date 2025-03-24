@@ -1,0 +1,18 @@
+{
+  "train": [
+    {
+      "root": "../dataset/output_dataset/train/images",
+      "anno": "../dataset/output_dataset/train/annotations.jsonl",
+      "label_map": "../dataset/output_dataset/label.json",
+      "dataset_mode": "odvg"
+    }
+  ],
+  "val": [
+    {
+      "root": "../dataset/output_dataset/valid/images",
+      "anno": "../dataset/output_dataset/valid/annotation.json",
+      "label_map": null,
+      "dataset_mode": "coco"
+    }
+  ]
+}

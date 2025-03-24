@@ -1,0 +1,7 @@
+nohup: failed to run command 'python': No such file or directory
+nohup: failed to run command 'python': No such file or directory
+nohup: failed to run command 'python': No such file or directory
+Traceback (most recent call last):
+  File "/mnt/c/Users/phann/Documents/Pig_farming/train_countgd/main.py", line 10, in <module>
+    import numpy as np
+ModuleNotFoundError: No module named 'numpy'
