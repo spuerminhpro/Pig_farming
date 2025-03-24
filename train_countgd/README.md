@@ -87,39 +87,6 @@ cd ../../../
   ```
 * Download the pretrained countgd weight.
   [Google Drive link (1.2 GB)](https://drive.google.com/file/d/1RbRcNLsOfeEbx6u39pBehqsgQiexHHrI/view?usp=sharing)
-## CountGD Inference & Pre-Trained Weights
-
-The model weights used in the paper can be downloaded from [Google Drive link (1.2 GB)](https://drive.google.com/file/d/1RbRcNLsOfeEbx6u39pBehqsgQiexHHrI/view?usp=sharing). To reproduce the results in the paper, run the following commands after activating the Anaconda environment set up in step 4 of [Preparation](#preparation). Make sure to change the directory and file names in [datasets_fsc147_val.json](https://github.com/niki-amini-naieni/CountGD/blob/main/config/datasets_fsc147_val.json) and [datasets_fsc147_test.json](https://github.com/niki-amini-naieni/CountGD/blob/main/config/datasets_fsc147_test.json) to the ones you set up in step 1 of [Preparation](#preparation). Make sure that the model file name refers to the model that you downloaded.
-
-For the validation set (takes ~ 26 minutes on 1 RTX 3090 GPU):
-
-```
-python -u main_inference.py --output_dir ./countgd_val -c config/cfg_fsc147_val.py --eval --datasets config/datasets_fsc147_val.json --pretrain_model_path checkpoints/checkpoint_fsc147_best.pth --options text_encoder_type=checkpoints/bert-base-uncased --crop --sam_tt_norm --remove_bad_exemplar
-```
-
-For the validation set with no Segment Anything Model (SAM) test-time normalization and, hence, slightly reduced counting accuracy (takes ~ 6 minutes on 1 RTX 3090 GPU):
-
-```
-python -u main_inference.py --output_dir ./countgd_val -c config/cfg_fsc147_val.py --eval --datasets config/datasets_fsc147_val.json --pretrain_model_path checkpoints/checkpoint_fsc147_best.pth --options text_encoder_type=checkpoints/bert-base-uncased --crop --remove_bad_exemplar
-```
-
-For the test set (takes ~ 26 minutes on 1 RTX 3090 GPU):
-
-```
-python -u main_inference.py --output_dir ./countgd_test -c config/cfg_fsc147_test.py --eval --datasets config/datasets_fsc147_test.json --pretrain_model_path checkpoints/checkpoint_fsc147_best.pth --options text_encoder_type=checkpoints/bert-base-uncased --crop --sam_tt_norm --remove_bad_exemplar
-```
-
-For the test set with no Segment Anything Model (SAM) test-time normalization and, hence, slightly reduced counting accuracy (takes ~ 6 minutes on 1 RTX 3090 GPU):
-
-```
-python -u main_inference.py --output_dir ./countgd_test -c config/cfg_fsc147_test.py --eval --datasets config/datasets_fsc147_test.json --pretrain_model_path checkpoints/checkpoint_fsc147_best.pth --options text_encoder_type=checkpoints/bert-base-uncased --crop --remove_bad_exemplar
-```
-
-* Note: Inference can be further sped up by increasing the batch size for evaluation
-
-## Testing Your Own Dataset
-
-You can run CountGD on all the images in a zip folder uploaded to Google Drive using the Colab notebook [here](https://github.com/niki-amini-naieni/CountGD/blob/main/google-drive-batch-process-countgd.ipynb) in the repository or [here](https://huggingface.co/spaces/nikigoli/countgd/blob/main/notebooks/demo.ipynb) online. This code supports a single text description for the whole dataset but can be easily modified to handle different text descriptions for different images and to support exemplar inputs.
 
 ## CountGD Train
 setput custome_dataset
@@ -145,9 +112,9 @@ setput custome_dataset
 ```
 
 train
-
+```
 python main.py --output_dir ./gdino_train -c config/cfg_fsc147_vit_b_odvg.py --datasets custome_data/custome_dataset.json --pretrain_model_path checkpoints/checkpoint_fsc147_best.pth --options text_encoder_type=checkpoints/bert-base-uncased 
-
+```
 ## CountBench
 
 See [here](https://github.com/niki-amini-naieni/CountGD/issues/6)
