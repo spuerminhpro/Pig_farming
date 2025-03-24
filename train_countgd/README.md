@@ -12,8 +12,6 @@ If you find this repository useful, please give it a star ⭐.
 
 ## Contents
 * [Preparation](#preparation)
-* [CountGD Inference & Pre-Trained Weights](#countgd-inference--pre-trained-weights)
-* [Testing Your Own Dataset](#testing-your-own-dataset)
 * [CountGD Train](#countgd-train)
 * [CountBench](#countbench)
 * [Citation](#citation)
