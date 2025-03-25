@@ -359,25 +359,29 @@ class CocoDetection(torchvision.datasets.CocoDetection):
         """
         try:
             img, target = super(CocoDetection, self).__getitem__(idx)
-            
         except:
             print("Error idx: {}".format(idx))
             idx += 1
             img, target = super(CocoDetection, self).__getitem__(idx)
-        
         image_id = self.ids[idx]
         target = {'image_id': image_id, 'annotations': target}
-        exemp_count = 0
-        for instance in target['annotations']:
-            if instance['area'] != 4:
-                exemp_count += 1
-        assert exemp_count == 3
         img, target = self.prepare(img, target)
-        target['exemplars'] = target['boxes'][-3:]
-        target['boxes'] = target['boxes'][:-3]
-        target['labels'] = target['labels'][:-3]
+        print(image_id)
+        # Ensure there are enough boxes to choose exemplars.
+        num_boxes = target['boxes'].shape[0]
+
+        assert num_boxes >= 3, "Not enough boxes to select exemplars."
+
+        # Randomly shuffle indices and select 3 as exemplars.
+        indices = list(range(num_boxes))
+        random.shuffle(indices)
+        exemplar_indices = indices[:3]
+        non_exemplar_indices = indices[3:]
         
-        
+        target['exemplars'] = target['boxes'][exemplar_indices]
+        target['boxes'] = target['boxes'][non_exemplar_indices]
+        target['labels'] = target['labels'][non_exemplar_indices]
+
         if self._transforms is not None:
             img, target = self._transforms(img, target)
 

@@ -120,9 +120,9 @@ class ODVGDataset(VisionDataset):
         target["labels"] = classes
         target["exemplars"] = exemplars
         target["labels_uncropped"] = torch.clone(classes)
-        if len(target['labels']) > 0:
-            assert target['labels'][0] == target['labels_uncropped'][0]
-            print('asserted')
+        # if len(target['labels']) > 0:
+        #     assert target['labels'][0] == target['labels_uncropped'][0]
+        #     print('asserted')
         # size, cap_list, caption, bboxes, labels
 
 
