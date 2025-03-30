@@ -376,7 +376,10 @@ class CocoDetection(torchvision.datasets.CocoDetection):
         indices = list(range(num_boxes))
         random.shuffle(indices)
         exemplar_indices = indices[:3]
-        non_exemplar_indices = indices[3:]
+        if num_boxes <= 3:
+            non_exemplar_indices = exemplar_indices
+        else:    
+            non_exemplar_indices = indices[3:]
         
         target['exemplars'] = target['boxes'][exemplar_indices]
         target['boxes'] = target['boxes'][non_exemplar_indices]

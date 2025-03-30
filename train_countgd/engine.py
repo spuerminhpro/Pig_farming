@@ -27,7 +27,7 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
                     data_loader: Iterable, optimizer: torch.optim.Optimizer,
                     device: torch.device, epoch: int, max_norm: float = 0, 
                     wo_class_error=False, lr_scheduler=None, args=None, logger=None):
-    scaler = torch.amp.GradScaler('cuda',enabled=args.amp)
+    scaler = torch.cuda.amp.GradScaler(enabled=args.amp)
 
 
     model.train()
@@ -59,7 +59,7 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
             if exemp.shape[0] > 3:
                 print('WARNING: Exemp shape greater than 3!!! Only 3 exemplars allowed during training')
         targets = [{k: v.to(device) for k, v in t.items() if torch.is_tensor(v)} for t in targets]
-        with torch.amp.autocast('cuda',enabled=args.amp):
+        with torch.cuda.amp.autocast(enabled=args.amp):
             outputs = model(samples, exemplars, labels_uncropped, captions=captions)
             loss_dict = criterion(outputs, targets, cap_list, captions)
 
@@ -266,7 +266,7 @@ def evaluate(model, model_without_ddp, criterion, postprocessors, data_loader, b
         bs = samples.tensors.shape[0]
         input_captions = [cat_list[target['labels'][0]] + " ." for target in targets]
         print("input_captions: " + str(input_captions))
-        with torch.amp.autocast('cude',enabled=args.amp):
+        with torch.cuda.amp.autocast(enabled=args.amp):
 
             outputs = model(samples, exemplars, [torch.tensor([0]).to(device) for t in targets], captions=input_captions)
 
@@ -384,5 +384,3 @@ def evaluate(model, model_without_ddp, criterion, postprocessors, data_loader, b
 
 
     return count_mae, stats, coco_evaluator
-
-
