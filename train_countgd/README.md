@@ -14,6 +14,10 @@ Official PyTorch implementation for CountGD. Details can be found in the paper, 
 ## Preparation
 ### 1. Prepare Dataset
 [Dataset Documentation](Dataset_doc.md)
+open notebook to create train and test dataset
+```
+create_dataset_countgd.ipynb
+```
 
 ### 2. Install GCC
 
