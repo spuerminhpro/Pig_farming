@@ -1,1 +1,1 @@
-nohup python main.py --output_dir ./gdino_train -c config/cfg_fsc147_vit_b_odvg.py --datasets custome_data/custome_dataset.json --pretrain_model_path checkpoints/checkpoint_fsc147_best.pth --options text_encoder_type=checkpoints/bert-base-uncased >>./training.log 2>&1 & 
+python main.py --output_dir ./gdino_train -c config/cfg_fsc147_vit_b_odvg.py --datasets custome_data/custome_dataset.json --pretrain_model_path checkpoints/checkpoint_fsc147_best.pth --options text_encoder_type=checkpoints/bert-base-uncased >>./training.log 2>&1 & 
