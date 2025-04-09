@@ -85,10 +85,13 @@ setput dataset path in 'custome_data/custome_dataset.json'
 [Custom Dataset](custome_data/custome_dataset.json)
 
 Modify model parameter in config/cfg_fsc147_vit_b_odvg.py
+```
   epoch= number for train
-  label_list = ['pig']  
-  val_label_list = ['pig']
   
+  label_list = ['pig']  
+  
+  val_label_list = ['pig']
+  ```
 Train
 ```
 python main.py --output_dir ./gdino_train -c config/cfg_fsc147_vit_b_odvg.py --datasets custome_data/custome_dataset.json --pretrain_model_path checkpoints/checkpoint_fsc147_best.pth --options text_encoder_type=checkpoints/bert-base-uncased 
