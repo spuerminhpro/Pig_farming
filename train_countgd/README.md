@@ -86,10 +86,9 @@ setput dataset path in 'custome_data/custome_dataset.json'
 
 Modify model parameter in config/cfg_fsc147_vit_b_odvg.py
 ```
-  epoch= number for train
-  
+  epoch= 
+  batch_size=
   label_list = ['pig']  
-  
   val_label_list = ['pig']
   ```
 Train
