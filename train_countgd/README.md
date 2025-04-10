@@ -4,6 +4,10 @@ Niki Amini-Naieni, Tengda Han, & Andrew Zisserman
 
 Official PyTorch implementation for CountGD. Details can be found in the paper, [[Paper]](https://arxiv.org/abs/2407.04619) [[Project page]](https://www.robots.ox.ac.uk/~vgg/research/countgd/).
 
+For Inference code:
+
+[CountGD Repository](https://github.com/spuerminhpro/Pig_farming/tree/main/countgd)
+
 ## Contents
 * [Preparation](#preparation)
 * [CountGD Train](#countgd-train)
