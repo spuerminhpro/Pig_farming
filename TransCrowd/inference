@@ -1,0 +1,1 @@
+python inference.py --input /mnt/sda1/PythonProject/Pig_counting/dataset/TransCrowd/test/images_crop/d15_1597279500_img_1_jpg.rf.e9599a222d6a5505feff6a5856d2e0cf.jpg   --model_path save_file/Pig_detection/model_best.pth --output output --model_type 'gap'

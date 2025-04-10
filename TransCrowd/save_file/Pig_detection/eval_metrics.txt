@@ -1,0 +1,5 @@
+Valid Result  MAE: 0.793, MSE: 1.134
+Valid Result  MAE: 0.817, MSE: 1.239
+Valid Result  MAE: 0.886, MSE: 1.268
+Valid Result  MAE: 1.176, MSE: 1.678
+Valid Result  MAE: 0.720, MSE: 1.091
