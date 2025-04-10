@@ -1,4 +1,5 @@
 scipy
+ninja
 termcolor
 addict
 yapf==0.40.1
