@@ -378,12 +378,13 @@ class CocoDetection(torchvision.datasets.CocoDetection):
         exemplar_indices = indices[:3]
         if num_boxes <= 3:
             non_exemplar_indices = exemplar_indices
+            target['exemplars'] = target['boxes'][exemplar_indices]
         else:    
             non_exemplar_indices = indices[3:]
         
-        target['exemplars'] = target['boxes'][exemplar_indices]
-        target['boxes'] = target['boxes'][non_exemplar_indices]
-        target['labels'] = target['labels'][non_exemplar_indices]
+            target['exemplars'] = target['boxes'][exemplar_indices]
+            target['boxes'] = target['boxes']
+            target['labels'] = target['labels']
 
         if self._transforms is not None:
             img, target = self._transforms(img, target)

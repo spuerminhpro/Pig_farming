@@ -1,16 +1,16 @@
 {
   "train": [
     {
-      "root": "../dataset/output_dataset/train/images",
-      "anno": "../dataset/output_dataset/train/annotations.jsonl",
-      "label_map": "../dataset/output_dataset/label.json",
+      "root": "/mnt/sda1/PythonProject/Pig_counting/dataset/PigsFarming_label_dataset_countgd/train/images",
+      "anno": "/mnt/sda1/PythonProject/Pig_counting/dataset/PigsFarming_label_dataset_countgd/train/annotations.jsonl",
+      "label_map": "/mnt/sda1/PythonProject/Pig_counting/dataset/PigsFarming_label_dataset_countgd/label.json",
       "dataset_mode": "odvg"
     }
   ],
   "val": [
     {
-      "root": "../dataset/output_dataset/valid/images",
-      "anno": "../dataset/output_dataset/valid/annotation.json",
+      "root": "/mnt/sda1/PythonProject/Pig_counting/dataset/PigsFarming_label_dataset_countgd/valid/images",
+      "anno": "/mnt/sda1/PythonProject/Pig_counting/dataset/PigsFarming_label_dataset_countgd/valid/annotation.json",
       "label_map": null,
       "dataset_mode": "coco"
     }
