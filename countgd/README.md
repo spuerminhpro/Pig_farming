@@ -3,6 +3,10 @@
 ## Overview
 CountGD is a multi-modal open-world counting model designed for object detection and counting tasks. It integrates multiple deep learning models, including GroundingDINO and Segment Anything, to provide accurate and efficient counting solutions.
 
+##For training code:
+[CountGD Repository](https://github.com/spuerminhpro/Pig_farming/tree/main/train_countgd)
+
+
 ## Table of Contents
 - [Preparation](#preparation)
 - [Installation](#installation)
