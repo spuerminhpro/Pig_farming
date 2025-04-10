@@ -65,6 +65,11 @@ cd ../../../
 
 ---
 
+## Download Pre-Trained Weights
+
+* Download the pretrained countgd weight from paper.
+  [Google Drive link (1.2 GB)](https://drive.google.com/file/d/1RbRcNLsOfeEbx6u39pBehqsgQiexHHrI/view?usp=sharing)
+
 ## Usage
 To run the model with a pre-trained checkpoint, execute:
 
