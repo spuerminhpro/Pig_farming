@@ -80,7 +80,7 @@ cd ../../../
   ```
   wget -P checkpoints https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
   ```
-* Download the pretrained countgd weight.
+* Download the pretrained countgd weight from paper.
   [Google Drive link (1.2 GB)](https://drive.google.com/file/d/1RbRcNLsOfeEbx6u39pBehqsgQiexHHrI/view?usp=sharing)
 
 ## CountGD Train
