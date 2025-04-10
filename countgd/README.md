@@ -69,6 +69,14 @@ python app.py --pretrain_model_path /path/to/best_checkpoint
 
 ---
 
+for public the link
+modify the app.py
+```
+interface.launch(share=True)
+```
+
+
+
 ## Evaluation
 To evaluate the model on a test dataset, open and execute `evaluate_test.ipynb`.
 
