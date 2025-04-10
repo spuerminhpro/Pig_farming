@@ -5,7 +5,7 @@ CountGD is a multi-modal open-world counting model designed for object detection
 
 ## For training code:
 
-[CountGD Repository](https://github.com/spuerminhpro/Pig_farming/tree/main/train_countgd)
+[Train CountGD Repository](https://github.com/spuerminhpro/Pig_farming/tree/main/train_countgd)
 
 
 ## Table of Contents
