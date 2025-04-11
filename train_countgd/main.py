@@ -259,10 +259,16 @@ def main(args):
     
     if args.eval:
         os.environ['EVAL_FLAG'] = 'TRUE'
-        test_stats, coco_evaluator = evaluate(model, model_without_ddp, criterion, postprocessors,
+        val_mae, test_stats, coco_evaluator = evaluate(model, model_without_ddp, criterion, postprocessors,
                                               data_loader_val, base_ds, device, args.output_dir, wo_class_error=wo_class_error, args=args)
         if args.output_dir:
             utils.save_on_master(coco_evaluator.coco_eval["bbox"].eval, output_dir / "eval.pth")
+            
+            # Save visualization of evaluation results
+            if hasattr(coco_evaluator, 'save_visualization'):
+                visualization_dir = output_dir / "visualizations"
+                os.makedirs(visualization_dir, exist_ok=True)
+                coco_evaluator.save_visualization(visualization_dir)
 
         log_stats = {**{f'test_{k}': v for k, v in test_stats.items()} }
         if args.output_dir and utils.is_main_process():

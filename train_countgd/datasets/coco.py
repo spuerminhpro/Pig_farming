@@ -366,7 +366,6 @@ class CocoDetection(torchvision.datasets.CocoDetection):
         image_id = self.ids[idx]
         target = {'image_id': image_id, 'annotations': target}
         img, target = self.prepare(img, target)
-        print(image_id)
         # Ensure there are enough boxes to choose exemplars.
         num_boxes = target['boxes'].shape[0]
 

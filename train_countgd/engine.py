@@ -163,49 +163,48 @@ def get_count_errs(samples, exemplars, outputs, box_threshold, text_threshold, t
     sizes = [target["size"] for target in targets]
     
     abs_errs = []
-    for sample_ind in range(len(targets)):
-        sample_logits = logits[sample_ind]
-        sample_boxes = boxes[sample_ind]
-        input_caption = input_captions[sample_ind]
-        sample = samples[sample_ind]
-        size = sizes[sample_ind]
-        sample_exemplars = exemplars[sample_ind]
+    # Create or append to count log file
+    count_log_path = "count_log.txt"
+    with open(count_log_path, "a") as f:
+        for sample_ind in range(len(targets)):
+            sample_logits = logits[sample_ind]
+            sample_boxes = boxes[sample_ind]
+            input_caption = input_captions[sample_ind]
+            sample = samples[sample_ind]
+            size = sizes[sample_ind]
+            sample_exemplars = exemplars[sample_ind]
 
-        # Setting adaptive logit threshold based on Otsu's binarization algo.
-        #max_logits = sample_logits.max(dim=-1).values.cpu().numpy()
-        #box_threshold = threshold_otsu(max_logits)
+            for token_ind in range(len(tokenized_captions['input_ids'][sample_ind])):
+                idx = tokenized_captions['input_ids'][sample_ind][token_ind]
+                print(idx)
+                if idx == 1012:
+                    end_idx = token_ind
+                    break
 
-        for token_ind in range(len(tokenized_captions['input_ids'][sample_ind])):
-            idx = tokenized_captions['input_ids'][sample_ind][token_ind]
-            print(idx)
-            if idx == 1012:
-                end_idx = token_ind
-                break
-
-        box_mask = sample_logits.max(dim=-1).values > box_threshold
-        expected_cnt = sample_logits.max(dim=-1).values.sum().item()
-        expected_cnt = sample_logits[:, 1:end_idx].mean(dim=-1).sum().item()
-        sample_logits = sample_logits[box_mask, :]
-        sample_boxes = sample_boxes[box_mask, :]
-        
-        text_mask = (sample_logits[:, 1:end_idx] > text_threshold).sum(dim=-1) == (end_idx - 1)
-        sample_logits = sample_logits[text_mask, :]
-        sample_boxes = sample_boxes[text_mask, :]
-        #if 'sunglass' in input_caption:
-            #plot_points(renorm(sample.cpu()).permute(1, 2, 0).numpy(), sample_exemplars.cpu().numpy(), size.cpu().numpy(), sample_boxes[:,:2].cpu().numpy())
-        
-        gt_count = targets[sample_ind]['labels'].shape[0]
-        pred_cnt = sample_logits.shape[0]
-        #pred_cnt = tt_norm(pred_cnt, sample_exemplars.cpu().numpy(), size.cpu().numpy(), sample_boxes[:, :2].cpu().numpy())
-        #pred_cnt = expected_cnt
-        #pred_cnt = expected_cnt
-        if pred_cnt == 0:
-            print("All query logits: " + str(logits[sample_ind]))
-            print("First query logit: " + str(logits[sample_ind][0]))
-            print("tokenized caption: " + str(tokenized_captions['input_ids']))
-        #pred_cnt = expected_cnt
-        print("Pred Count: " + str(pred_cnt) + ", GT Count: " + str(gt_count))
-        abs_errs.append(np.abs(gt_count - pred_cnt)) 
+            box_mask = sample_logits.max(dim=-1).values > box_threshold
+            expected_cnt = sample_logits.max(dim=-1).values.sum().item()
+            expected_cnt = sample_logits[:, 1:end_idx].mean(dim=-1).sum().item()
+            sample_logits = sample_logits[box_mask, :]
+            sample_boxes = sample_boxes[box_mask, :]
+            
+            text_mask = (sample_logits[:, 1:end_idx] > text_threshold).sum(dim=-1) == (end_idx - 1)
+            sample_logits = sample_logits[text_mask, :]
+            sample_boxes = sample_boxes[text_mask, :]
+            
+            gt_count = targets[sample_ind]['labels'].shape[0]
+            pred_cnt = sample_logits.shape[0]
+            
+            if pred_cnt == 0:
+                print("All query logits: " + str(logits[sample_ind]))
+                print("First query logit: " + str(logits[sample_ind][0]))
+                print("tokenized caption: " + str(tokenized_captions['input_ids']))
+            
+            print("Pred Count: " + str(pred_cnt) + ", GT Count: " + str(gt_count))
+            # Save counts to log file with image ID
+            image_id = targets[sample_ind]['image_id'].item()
+            f.write(f"Image ID: {image_id}, Pred Count: {pred_cnt}, GT Count: {gt_count}\n")
+            
+            abs_errs.append(np.abs(gt_count - pred_cnt)) 
     return abs_errs
 
 @torch.no_grad()
