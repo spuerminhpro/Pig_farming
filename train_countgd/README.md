@@ -17,7 +17,7 @@ For Inference code:
 
 ## Preparation
 ### 1. Prepare Dataset
-[Dataset Documentation](Dataset_doc.md)
+[Dataset Documentation](document/Dataset_doc.md)
 open notebook to create train and test dataset
 ```
 create_dataset_countgd.ipynb
@@ -103,4 +103,7 @@ Test
 ```
 python main.py --output_dir ./gdino_test -c config/cfg_fsc147_vit_b_test.py --eval --datasets config/datasets_fsc147.json --pretrain_model_path ./logs_8_2_2024_thresh_0.23_lr_1e-4_vit_b/checkpoint_best_regular.pth --options text_encoder_type=checkpoints/bert-base-uncased
 ```
+###Result 
+Traning on pig detection for  counting  
+[Evaluatetion report](train_countgd/document/Report_CountGD_evaluation.pdf)
 
